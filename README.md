@@ -52,7 +52,7 @@ func Test_Example(test *testing.T) {
 		Case{
 			ID: "userID",
 		},
-   // You can pass multiple functions at each case.
+		// You can pass multiple functions at each case.
 		func(t *testing.T, d *Dependencies, tc *Case, run func() Result) {
 			// Logic executed before running the test case.
 			d.m.OnIsCached(func(id string) bool {
