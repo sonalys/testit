@@ -16,50 +16,54 @@ To start using, you can simply create
 package main
 
 import (
-  "github.com/sonalys/testit"
-  // ...
+	"testing"
+
+	"github.com/sonalys/testit"
+	"github.com/stretchr/testify/require"
+	// ...
 )
 
 func Test_Example(test *testing.T) {
 	type Dependencies struct {
-    m mocks.SomeMock
-    db db.Database
-  }
+		m  mocks.SomeMock
+		db db.Database
+	}
 	type Case struct {
-    ID string
-  }
+		ID string
+	}
 	type Result struct {
-    u User
-    err error
-  }
+		u   User
+		err error
+	}
 
 	t := testit.New(test, func(t *testing.T, d *Dependencies, tc *Case) func() (r Result) {
-    // Pre-run initialization.
-    d.m = mocks.Initialize()
-    m.db = database.NewConn(&d.m)
-    require.NoError(t, m.db.Cleanup())
-    // Test-case run function that will execute the run behavior.
+		// Pre-run initialization.
+		d.m = mocks.Initialize()
+		m.db = database.NewConn(&d.m)
+		require.NoError(t, m.db.Cleanup())
+		// Test-case run function that will execute the run behavior.
 		return func() (r Result) {
-      r.u, r.err = m.db.FindUser(tc.ID)
+			r.u, r.err = m.db.FindUser(tc.ID)
 			return
-	}
+		}
 	})
 
 	t.Run("case name", t.Case(
 		Case{
-      ID: "userID",
-    },
+			ID: "userID",
+		},
 		func(t *testing.T, d *Dependencies, tc *Case, run func() Result) {
-      // Logic executed before running the test case.
-      d.m.OnIsCached(func(id string) bool {
-        return false
-      })
-      // Executes the common run function from the initial declaration.
-      result := run()
-      // Assertions after the test is ran.
-      require.NoError(t, result.err)
-      require.NotNil(t, result.u)
+			// Logic executed before running the test case.
+			d.m.OnIsCached(func(id string) bool {
+				return false
+			})
+			// Executes the common run function from the initial declaration.
+			result := run()
+			// Assertions after the test is ran.
+			require.NoError(t, result.err)
+			require.NotNil(t, result.u)
 		},
 	))
 }
+
 ```
