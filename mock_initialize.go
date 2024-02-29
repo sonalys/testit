@@ -34,38 +34,43 @@ func initializeMocks(t *testing.T, m any) {
 		log.Fatal().Msgf("received a pointer to a non-struct value, %T", valueOf.Interface())
 	}
 	fieldLen := valueOf.NumField()
-	type mockInterface interface {
+	type assertExpectationsTestify interface {
 		AssertExpectations(t mock.TestingT) bool
 	}
-	interfaceType := reflect.TypeOf((*mockInterface)(nil)).Elem()
+	type assertExpectationsT interface {
+		AssertExpectations(t *testing.T) bool
+	}
+	interfaceTypeTestify := reflect.TypeOf((*assertExpectationsTestify)(nil)).Elem()
+	interfaceTypeT := reflect.TypeOf((*assertExpectationsT)(nil)).Elem()
 	for i := 0; i < fieldLen; i++ {
 		value := valueOf.Field(i)
 		// bypass memory protection of unexported fields.
 		newField := reflect.NewAt(value.Type(), unsafe.Pointer(value.UnsafeAddr()))
-		var impl mockInterface
-		var ok bool
 		switch value.Kind() {
 		// If the field is a pointer, we only set it if unitialized
 		case reflect.Pointer:
 			// No need to continue if the field is not related to mockery.
 			// No need to re-initialize this value if it's already set.
-			if !value.IsNil() || !newField.Elem().Type().Implements(interfaceType) {
+			if !value.IsNil() ||
+				!newField.Elem().Type().Implements(interfaceTypeTestify) ||
+				!newField.Elem().Type().Implements(interfaceTypeT) {
 				continue
 			}
 			newValue := reflect.New(value.Type().Elem())
 			newField.Elem().Set(newValue)
 			// If the field is a struct, it's already initialized.
-			impl, ok = newValue.Interface().(mockInterface)
-		case reflect.Struct:
-			// No need to continue if the field is not related to mockery.
-			if !newField.Type().Implements(interfaceType) {
-				continue
+			if impl, ok := newValue.Interface().(assertExpectationsTestify); ok {
+				t.Cleanup(func() { impl.AssertExpectations(t) })
+			} else if impl, ok := newValue.Interface().(assertExpectationsT); ok {
+				t.Cleanup(func() { impl.AssertExpectations(t) })
 			}
+		case reflect.Struct:
 			value := newField.Interface()
-			impl, ok = value.(mockInterface)
-		}
-		if ok {
-			t.Cleanup(func() { impl.AssertExpectations(t) })
+			if impl, ok := value.(assertExpectationsTestify); ok {
+				t.Cleanup(func() { impl.AssertExpectations(t) })
+			} else if impl, ok := value.(assertExpectationsT); ok {
+				t.Cleanup(func() { impl.AssertExpectations(t) })
+			}
 		}
 	}
 }
