@@ -10,6 +10,21 @@ Also check out [github.com/sonalys/fake](https://github.com/sonalys/fake). A typ
 
 ## Usage
 
+### tools/tools.go
+
+Create the tools/tools.go to declare testit as a development only dependency
+
+```go
+//go:build tools
+
+package tools
+
+import (
+	_ "github.com/sonalys/testit"
+)
+
+```
+
 To start using, you can simply create
 
 ```go
