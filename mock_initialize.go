@@ -21,15 +21,17 @@ import (
 //	initializeMocks(&dependencies{})
 //
 // Will initialize dependencies.login and call dependencies.login.AssertExpectations(t)
-func initializeMocks(t *testing.T, m any) {
+func initializeMocks[T any](t *testing.T) *T {
+	var dependency T
+	ptr := &dependency
 	if t == nil {
 		log.Fatal().Msgf("received a nil %T", t)
 	}
-	typeOf := reflect.TypeOf(m)
+	typeOf := reflect.TypeOf(ptr)
 	if typeOf.Kind() != reflect.Pointer {
 		log.Fatal().Msg("received a non-pointer value")
 	}
-	valueOf := reflect.ValueOf(m).Elem()
+	valueOf := reflect.ValueOf(ptr).Elem()
 	if valueOf.Kind() != reflect.Struct {
 		log.Fatal().Msgf("received a pointer to a non-struct value, %T", valueOf.Interface())
 	}
@@ -73,4 +75,5 @@ func initializeMocks(t *testing.T, m any) {
 			}
 		}
 	}
+	return ptr
 }

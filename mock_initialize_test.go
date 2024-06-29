@@ -24,7 +24,7 @@ func TestInitializeMocks(t *testing.T) {
 		testStruct := &test{}
 		require.Nil(t, testStruct.mock)
 		t.Run("limited t scope", func(t *testing.T) {
-			initializeMocks(t, testStruct)
+			testStruct = initializeMocks[test](t)
 		})
 		require.NotNil(t, testStruct.mock)
 		require.True(t, testStruct.mock.called)
@@ -36,7 +36,7 @@ func TestInitializeMocks(t *testing.T) {
 		}
 		testStruct := &test{}
 		t.Run("limited t scope", func(t *testing.T) {
-			initializeMocks(t, testStruct)
+			testStruct = initializeMocks[test](t)
 		})
 		require.True(t, testStruct.mock.called)
 	})

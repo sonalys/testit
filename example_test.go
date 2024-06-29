@@ -6,17 +6,17 @@ import (
 	"github.com/sonalys/testit"
 )
 
-func Test(t *testing.T) {
+func Test_Stateful(t *testing.T) {
 	type Dependencies struct{}
 	type TestCase struct{}
 	type TargetFunc = func(id string) (any, error)
-	type Test = testit.Test[Dependencies, TestCase, TargetFunc]
+	type Test = testit.StatefulTest[Dependencies, TestCase, TargetFunc]
 
 	targetFn := func(id string) (any, error) {
 		return nil, nil
 	}
 
-	setup := testit.New(func(t *testing.T, d *Dependencies, tc *TestCase) TargetFunc {
+	setup := testit.Stateful(func(t *testing.T, d *Dependencies, tc *TestCase) TargetFunc {
 		println("pre-run setup")
 		return targetFn
 	})
@@ -29,6 +29,32 @@ func Test(t *testing.T) {
 		TestCase{},
 		additionalStep,
 		func(t Test) {
+			got, err := t.Run("id")
+			println("after-run assertions")
+			t.NoError(err)
+			t.Nil(got)
+		},
+	))
+}
+
+func Test_Stateless(t *testing.T) {
+	type Dependencies struct{}
+	type TargetFunc = func(id string) (any, error)
+
+	setup := testit.Stateless(func(t *testing.T, d *Dependencies) TargetFunc {
+		println("pre-run setup")
+		return func(id string) (any, error) {
+			return nil, nil
+		}
+	})
+
+	additionalStep := func(t testit.StatelessTest[Dependencies, TargetFunc]) {
+		println("additional step")
+	}
+
+	t.Run("test case", setup.Expect(
+		additionalStep,
+		func(t testit.StatelessTest[Dependencies, TargetFunc]) {
 			got, err := t.Run("id")
 			println("after-run assertions")
 			t.NoError(err)
