@@ -1,6 +1,8 @@
 package testit
 
-func NoErr[D, C, R, V any](t *Test[D, C, R], value V, err error) V {
-	t.NoError(err)
+func NoErr[V any](value V, err error) V {
+	if err != nil {
+		panic(err)
+	}
 	return value
 }
