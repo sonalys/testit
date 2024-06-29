@@ -11,6 +11,7 @@ type Setup[D, C, R any] struct {
 }
 
 type Test[D, C, R any] struct {
+	T *testing.T
 	*require.Assertions
 	Dependencies *D
 	Case         C
@@ -35,6 +36,7 @@ func (th *Setup[D, C, R]) Case(tc C, steps ...func(t Test[D, C, R])) func(*testi
 			run := th.setup(t, &dependencies, &tc)
 			for _, step := range steps {
 				step(Test[D, C, R]{
+					T:            t,
 					Assertions:   require.New(t),
 					Dependencies: &dependencies,
 					Case:         tc,
