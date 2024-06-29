@@ -15,7 +15,7 @@ type (
 		*require.Assertions
 		T            *testing.T
 		Dependencies *D
-		Case         C
+		Case         *C
 		Run          R
 	}
 )
@@ -38,7 +38,7 @@ func (th *StatefulSetup[D, C, R]) Case(tc C, steps ...func(t StatefulTest[D, C, 
 					T:            t,
 					Assertions:   require.New(t),
 					Dependencies: dependencies,
-					Case:         tc,
+					Case:         &tc,
 					Run:          run,
 				})
 			}
