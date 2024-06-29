@@ -1,32 +1,4 @@
-# TestIt
-
-TestIt is a very simple, but powerful, testing framework.
-
-It allows you to avoid repetition in mock initialization, pre-test cleanup, panic avoidance.
-
-It also helps you build small behavior blocks that can be re-utilized between test cases without sharing states.
-
-## Usage
-
-### tools/tools.go
-
-Create the tools/tools.go to declare testit as a development only dependency
-
-```go
-//go:build tools
-
-package tools
-
-import (
-	_ "github.com/sonalys/testit"
-)
-
-```
-
-To start using, you can simply create
-
-```go
-package main_test
+package testit_test
 
 import (
 	"testing"
@@ -37,7 +9,7 @@ import (
 func Test(t *testing.T) {
 	type Dependencies struct{}
 	type TestCase struct{}
-	type TargetFunc func(id string) (any, error)
+	type TargetFunc = func(id string) (any, error)
 	type Config = testit.Config[Dependencies, TestCase, TargetFunc]
 
 	targetFn := func(id string) (any, error) {
@@ -64,4 +36,3 @@ func Test(t *testing.T) {
 		},
 	))
 }
-```
