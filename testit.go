@@ -11,13 +11,14 @@ type Setup[D, C, R any] struct {
 }
 
 type Test[D, C, R any] struct {
-	T *testing.T
 	*require.Assertions
+	T            *testing.T
 	Dependencies *D
 	Case         C
 	Run          R
 }
 
+// New is a function to create a new test setup.
 func New[Dependencies, TestCase, RunFn any](
 	setup func(t *testing.T, d *Dependencies, tc *TestCase) RunFn,
 ) *Setup[Dependencies, TestCase, RunFn] {
@@ -26,6 +27,7 @@ func New[Dependencies, TestCase, RunFn any](
 	}
 }
 
+// Case is a function to create a test case with the given test case.
 func (th *Setup[D, C, R]) Case(tc C, steps ...func(t Test[D, C, R])) func(*testing.T) {
 	return func(t *testing.T) {
 		NotPanics(t, func() {
@@ -45,4 +47,10 @@ func (th *Setup[D, C, R]) Case(tc C, steps ...func(t Test[D, C, R])) func(*testi
 			}
 		})
 	}
+}
+
+// Expect is a function to create a test case with an empty test case.
+func (th *Setup[D, C, R]) Expect(steps ...func(t Test[D, C, R])) func(*testing.T) {
+	var tc C
+	return th.Case(tc, steps...)
 }
