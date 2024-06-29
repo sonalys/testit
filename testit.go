@@ -10,7 +10,7 @@ type Setup[D, C, R any] struct {
 	setup func(t *testing.T, d *D, tc *C) R
 }
 
-type Config[D, C, R any] struct {
+type Test[D, C, R any] struct {
 	*require.Assertions
 	Dependencies *D
 	Case         C
@@ -25,7 +25,7 @@ func New[Dependencies, TestCase, RunFn any](
 	}
 }
 
-func (th *Setup[D, C, R]) Case(tc C, steps ...func(t Config[D, C, R])) func(*testing.T) {
+func (th *Setup[D, C, R]) Case(tc C, steps ...func(t Test[D, C, R])) func(*testing.T) {
 	return func(t *testing.T) {
 		require.NotPanics(t, func() {
 			var dependencies D
@@ -34,7 +34,7 @@ func (th *Setup[D, C, R]) Case(tc C, steps ...func(t Config[D, C, R])) func(*tes
 			}
 			run := th.setup(t, &dependencies, &tc)
 			for _, step := range steps {
-				step(Config[D, C, R]{
+				step(Test[D, C, R]{
 					Assertions:   require.New(t),
 					Dependencies: &dependencies,
 					Case:         tc,

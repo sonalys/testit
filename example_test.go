@@ -10,7 +10,7 @@ func Test(t *testing.T) {
 	type Dependencies struct{}
 	type TestCase struct{}
 	type TargetFunc = func(id string) (any, error)
-	type Config = testit.Config[Dependencies, TestCase, TargetFunc]
+	type Test = testit.Test[Dependencies, TestCase, TargetFunc]
 
 	targetFn := func(id string) (any, error) {
 		return nil, nil
@@ -21,14 +21,14 @@ func Test(t *testing.T) {
 		return targetFn
 	})
 
-	additionalStep := func(t Config) {
+	additionalStep := func(t Test) {
 		println("additional step")
 	}
 
 	t.Run("test case", setup.Case(
 		TestCase{},
 		additionalStep,
-		func(t Config) {
+		func(t Test) {
 			got, err := t.Run("id")
 			println("after-run assertions")
 			t.NoError(err)
