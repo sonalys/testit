@@ -28,7 +28,7 @@ func New[Dependencies, TestCase, RunFn any](
 
 func (th *Setup[D, C, R]) Case(tc C, steps ...func(t Test[D, C, R])) func(*testing.T) {
 	return func(t *testing.T) {
-		require.NotPanics(t, func() {
+		NotPanics(t, func() {
 			var dependencies D
 			if any(dependencies) != any(nil) {
 				initializeMocks(t, &dependencies)
