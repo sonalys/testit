@@ -48,6 +48,14 @@ func Test_Stateless(t *testing.T) {
 		}
 	})
 
+	setup = setup.PreCase(func(t *testing.T, d *Dependencies) {
+		println("pre-case setup")
+	})
+
+	setup = setup.PostCase(func(t *testing.T, d *Dependencies) {
+		println("post-case setup")
+	})
+
 	additionalStep := func(t testit.StatelessTest[Dependencies, TargetFunc]) {
 		println("additional step")
 	}
