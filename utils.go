@@ -1,6 +1,7 @@
 package testit
 
 import (
+	"runtime/debug"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -27,6 +28,8 @@ func NotPanics(t *testing.T, f func()) {
 		switch r := r.(type) {
 		case panicError:
 			require.NoError(t, r.err)
+		default:
+			require.Fail(t, "unexpected panic", "%s: %s", r, debug.Stack())
 		}
 	}()
 	f()
