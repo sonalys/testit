@@ -42,38 +42,48 @@ func initializeMocks[T any](t *testing.T) *T {
 	type assertExpectationsT interface {
 		AssertExpectations(t *testing.T) bool
 	}
+
 	interfaceTypeTestify := reflect.TypeOf((*assertExpectationsTestify)(nil)).Elem()
 	interfaceTypeT := reflect.TypeOf((*assertExpectationsT)(nil)).Elem()
+
 	for i := 0; i < fieldLen; i++ {
-		value := valueOf.Field(i)
-		// bypass memory protection of unexported fields.
-		newField := reflect.NewAt(value.Type(), unsafe.Pointer(value.UnsafeAddr()))
-		switch value.Kind() {
+		var target any
+		fieldValue := valueOf.Field(i)
+		fieldType := fieldValue.Type()
+		switch fieldValue.Kind() {
 		// If the field is a pointer, we only set it if unitialized
 		case reflect.Pointer:
-			// No need to continue if the field is not related to mockery.
 			// No need to re-initialize this value if it's already set.
-			if !value.IsNil() ||
-				!newField.Elem().Type().Implements(interfaceTypeTestify) ||
-				!newField.Elem().Type().Implements(interfaceTypeT) {
+			if !fieldValue.IsNil() {
 				continue
 			}
-			newValue := reflect.New(value.Type().Elem())
-			newField.Elem().Set(newValue)
-			// If the field is a struct, it's already initialized.
-			if impl, ok := newValue.Interface().(assertExpectationsTestify); ok {
-				t.Cleanup(func() { impl.AssertExpectations(t) })
-			} else if impl, ok := newValue.Interface().(assertExpectationsT); ok {
-				t.Cleanup(func() { impl.AssertExpectations(t) })
+			// No need to continue if the field is not related to mockery.
+			if !fieldType.Implements(interfaceTypeTestify) && !fieldType.Implements(interfaceTypeT) {
+				continue
 			}
+			target = initializeStructPointerField(fieldValue)
 		case reflect.Struct:
-			value := newField.Interface()
-			if impl, ok := value.(assertExpectationsTestify); ok {
-				t.Cleanup(func() { impl.AssertExpectations(t) })
-			} else if impl, ok := value.(assertExpectationsT); ok {
-				t.Cleanup(func() { impl.AssertExpectations(t) })
-			}
+			ptr := reflect.NewAt(fieldType, unsafe.Pointer(fieldValue.UnsafeAddr()))
+			target = ptr.Interface()
+		}
+		if impl, ok := target.(assertExpectationsTestify); ok {
+			t.Cleanup(func() { impl.AssertExpectations(t) })
+			continue
+		}
+		if impl, ok := target.(assertExpectationsT); ok {
+			t.Cleanup(func() { impl.AssertExpectations(t) })
 		}
 	}
 	return ptr
+}
+
+// initializeStructPointerField initializes a pointer field of a struct.
+func initializeStructPointerField(field reflect.Value) any {
+	fieldType := field.Type()
+	// Create a new pointer to the field type.
+	// This is necessary to bypass scope limitations.
+	ptr := reflect.NewAt(fieldType, unsafe.Pointer(field.UnsafeAddr()))
+	newValuePtr := reflect.New(fieldType.Elem())
+	ptr.Elem().Set(newValuePtr)
+	return newValuePtr.Interface()
 }
