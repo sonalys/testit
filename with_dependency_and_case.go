@@ -9,7 +9,7 @@ import (
 type (
 	CHook[D, C any] struct {
 		*require.Assertions
-		T            *testing.T
+		*testing.T
 		Dependencies *D
 		Case         *C
 		After        func()
