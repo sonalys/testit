@@ -54,14 +54,12 @@ func initializeMocks[T any](t *testing.T) *T {
 		// If the field is a pointer, we only set it if unitialized
 		case reflect.Pointer:
 			// No need to re-initialize this value if it's already set.
-			if !fieldValue.IsNil() {
-				continue
-			}
 			// No need to continue if the field is not related to mockery.
-			if !fieldType.Implements(interfaceTypeTestify) && !fieldType.Implements(interfaceTypeT) {
+			if !fieldValue.IsNil() || (!fieldType.Implements(interfaceTypeTestify) && !fieldType.Implements(interfaceTypeT)) {
 				continue
 			}
-			target = initializeStructPointerField(fieldValue)
+			newValue := reflect.New(fieldType.Elem())
+			target = setValue(fieldValue, newValue)
 		case reflect.Struct:
 			ptr := reflect.NewAt(fieldType, unsafe.Pointer(fieldValue.UnsafeAddr()))
 			target = ptr.Interface()
@@ -77,13 +75,20 @@ func initializeMocks[T any](t *testing.T) *T {
 	return ptr
 }
 
-// initializeStructPointerField initializes a pointer field of a struct.
-func initializeStructPointerField(field reflect.Value) any {
-	fieldType := field.Type()
-	// Create a new pointer to the field type.
-	// This is necessary to bypass scope limitations.
-	ptr := reflect.NewAt(fieldType, unsafe.Pointer(field.UnsafeAddr()))
-	newValuePtr := reflect.New(fieldType.Elem())
-	ptr.Elem().Set(newValuePtr)
-	return newValuePtr.Interface()
+func setValue(dst reflect.Value, src reflect.Value) any {
+	dstType := dst.Type()
+	srcType := src.Type()
+	if dstType != srcType {
+		log.Fatal().Msgf("setProtectedValue: dst and src must have same type. got dst=%s src=%s", dstType, srcType)
+	}
+	if dst.CanSet() {
+		dst.Set(src)
+		return src.Interface()
+	}
+	if dst.Kind() == reflect.String {
+		log.Fatal().Msg("cannot set a private string value. strings are immutable")
+	}
+	dstPtr := reflect.NewAt(dstType, unsafe.Pointer(dst.UnsafeAddr()))
+	dstPtr.Elem().Set(src)
+	return src.Interface()
 }
