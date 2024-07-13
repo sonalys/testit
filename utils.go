@@ -24,8 +24,7 @@ func getStack() string {
 	if !BetterStack {
 		return string(debug.Stack())
 	}
-	// 3 because we ignore this function, the NotPanics and the panic.go internal.
-	return fmt.Sprintf("%#v", stack.Trace().TrimAbove(stack.Caller(3)))
+	return fmt.Sprintf("%#v", stack.Trace().TrimBelow(stack.Caller(5)))
 }
 
 func NotPanics(t *testing.T, f func()) {
