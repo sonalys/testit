@@ -60,6 +60,7 @@ func (th setup[D]) Expect(steps ...func(t DTest[D])) func(*testing.T) {
 					T:            t,
 				}
 				pre(hook)
+				dependencies = hook.Dependencies
 				if hook.After != nil {
 					after = append(after, hook.After)
 				}

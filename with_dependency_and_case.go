@@ -63,6 +63,7 @@ func (th withDepAndCase[D, C]) Case(tc C, steps ...func(t DCTest[D, C])) func(*t
 					Case:         &tc,
 				}
 				pre(hook)
+				dependencies = hook.Dependencies
 				if hook.After != nil {
 					after = append(after, hook.After)
 				}
