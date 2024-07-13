@@ -3,6 +3,7 @@ module github.com/sonalys/testit
 go 1.22.0
 
 require (
+	github.com/go-stack/stack v1.8.1
 	github.com/rs/zerolog v1.32.0
 	github.com/stretchr/testify v1.8.4
 )
